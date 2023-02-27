@@ -1,0 +1,27 @@
+# Just the block hash, number and timestamp. Queries that don't need any
+# other information should use this
+type BlockTime @entity(immutable: true) {
+  # The block hash
+  id: Bytes!
+  number: Int!
+  timestamp: Int!
+}
+
+# More complete information about a block
+type Block @entity(immutable: true) {
+  # The block hash
+  id: Bytes!
+  number: Int!
+  timestamp: Int!
+  parentHash: Bytes
+  author: Bytes
+  difficulty: BigInt
+  totalDifficulty: BigInt
+  gasUsed: BigInt
+  gasLimit: BigInt
+  receiptsRoot: Bytes
+  transactionsRoot: Bytes
+  stateRoot: Bytes
+  size: BigInt
+  unclesHash: Bytes
+}
