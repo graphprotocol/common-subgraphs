@@ -1,0 +1,20 @@
+{
+  "name": "ethereum-agg",
+  "license": "MIT",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ lutter/ethereum-agg",
+    "create-local": "graph create --node http://localhost:8020/ lutter/ethereum-agg",
+    "remove-local": "graph remove --node http://localhost:8020/ lutter/ethereum-agg",
+    "deploy-local": "graph deploy -l v1 --node http://localhost:8020/ --ipfs https://api.thegraph.com/ipfs/ lutter/ethereum-agg",
+    "test": "graph test"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "^0.62.0",
+    "@graphprotocol/graph-ts": "^0.32.0"
+  },
+  "devDependencies": {
+    "matchstick-as": "0.5.0"
+  }
+}

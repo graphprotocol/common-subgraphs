@@ -1,0 +1,40 @@
+# Just the block hash, number and timestamp. Queries that don't need any
+# other information should use this
+type BlockTime @entity(timeseries: true) {
+  # The block hash
+  id: Bytes!
+  number: Int!
+  timestamp: Int8!
+}
+
+# More complete information about a block
+type Block @entity(timeseries: true) {
+  # The block hash
+  id: Bytes!
+  number: Int!
+  timestamp: Int8!
+  parentHash: Bytes
+  author: Bytes
+  difficulty: BigInt
+  totalDifficulty: BigInt
+  gasUsed: BigInt
+  gasLimit: BigInt
+  receiptsRoot: Bytes
+  transactionsRoot: Bytes
+  stateRoot: Bytes
+  size: BigInt
+  unclesHash: Bytes
+}
+
+type Stats @aggregation(intervals: ["hour", "day"], source: "Block") {
+  id: Bytes!
+  timestamp: Int8!
+  max: BigDecimal! @aggregate(fn: "max", arg: "number")
+  min: BigDecimal! @aggregate(fn: "min", arg: "number")
+  # sum_{i=n}^m i = (m - n + 1) * (n + m) / 2
+  sum: BigInt! @aggregate(fn: "sum", arg: "number")
+  first: Int! @aggregate(fn: "first", arg: "number")
+  last: Int! @aggregate(fn: "last", arg: "number")
+  maxGas: BigInt! @aggregate(fn: "max", arg: "gasUsed")
+  maxDifficulty: BigInt! @aggregate(fn: "max", arg: "difficulty")
+}
