@@ -30,7 +30,7 @@ EOF
 read -d '' -r sum_check <<'EOF'
 select count(*) as sum_not_correct
   from %s.stats_%s
- where sum != (last - first + 1)*(last + first)/2
+ where sum != (last - first + 1)::numeric*(last + first)::numeric/2
    and first > 1
 EOF
 
