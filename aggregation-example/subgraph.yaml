@@ -1,5 +1,5 @@
-specVersion: 0.1.1
-description: Information about Ethereum Mainnet Blocks
+specVersion: 1.1.0
+description: "Information about Ethereum Mainnet Blocks (run #3)"
 repository: https://github.com/graphprotocol/common-subgraphs/blocks/ethereum
 schema:
   file: ./schema.graphql
