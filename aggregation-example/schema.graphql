@@ -1,24 +1,30 @@
-# Just the block hash, number and timestamp. Queries that don't need any
-# other information should use this
+# Store basic block information as a timeseries. That implies that the
+# entity is immutable
 type BlockTime @entity(timeseries: true) {
+  # Timeseries must have an id of type Int8
   id: Int8!
+  # Timeseries must have a timestamp field
+  timestamp: Int8!
   # The block hash
   hash: Bytes!
+  # The block number
   number: Int!
-  timestamp: Int8!
 }
 
-# More complete information about a block
+# More complete information about a block as another timeseries. Timeseries
+# can be queried like any other entity, and you can query, e.g., the gasUsed
+# of a certain block with a given hash with GraphQL via
+#   'query { blocks(hash: "0x..") { gasUsed }}'
 type Block @entity(timeseries: true) {
   id: Int8!
-  # The block hash
+  timestamp: Int8!
   hash: Bytes!
   number: Int!
-  # Artifical grouping keys; groupN is number % 10^N
+  # Artifical grouping keys; groupN is number % 10^N. In a real subgraph,
+  # this might be something like a reference to a `Token`
   group1: Int!
   group2: Int!
   group3: Int!
-  timestamp: Int8!
   parentHash: Bytes
   author: Bytes
   difficulty: BigInt
@@ -32,11 +38,34 @@ type Block @entity(timeseries: true) {
   unclesHash: Bytes
 }
 
-# Aggregate across all blocks
+# Aggregate across all blocks. Aggregations use a timeseries as their
+# source. They can be over an hour or a day, or both. For now, aggregations
+# are restricted to 'bucketed' aggregations, where each aggregate starts at
+# 0 at the beginning of the time interval. Lifetime aggregations where
+# aggregates start with the value of the previous bucket will be added
+# later.
+#
+# Aggregations are never written by the mappings; instead, graph-node
+# triggers a rollup and creates aggregations whenever it notices that a time
+# interval has finished. For example, when it processes a block whose time
+# is 4:01, it triggers the rollup for the hour from 3:00 to 4:00. Times are
+# always in UTC
+#
+# Like timeseries, aggregations must have an `id` and a `timestamp`
+# attribute. They are filled automatically by `graph-node`
 type Stats @aggregation(intervals: ["hour", "day"], source: "Block") {
+  # The id; it is the id of one of the data points that were aggregated into
+  # this bucket, but which one is undefined and should not be relied on
   id: Int8!
+  # The timestamp of the bucket is always the timestamp of the beginning of
+  # the interval
   timestamp: Int8!
+
+  # The aggregates
+
+  # A count of the number of data points that went into this bucket
   count: Int! @aggregate(fn: "count")
+  # The max(number) of the data points for this bucket
   max: BigDecimal! @aggregate(fn: "max", arg: "number")
   min: BigDecimal! @aggregate(fn: "min", arg: "number")
   # sum_{i=n}^m i = (m - n + 1) * (n + m) / 2

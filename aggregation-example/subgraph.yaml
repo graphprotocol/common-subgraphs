@@ -1,3 +1,8 @@
+# Enable aggregations by using a spec version >= 1.1.0
+#
+# The graph-node to which this is deployed must have GRAPH_MAX_SPEC_VERSION
+# also set to at least 1.1.0
+#
 specVersion: 1.1.0
 description: "Information about Ethereum Mainnet Blocks (run #3)"
 repository: https://github.com/graphprotocol/common-subgraphs/blocks/ethereum
