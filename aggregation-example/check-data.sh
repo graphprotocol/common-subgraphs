@@ -4,56 +4,101 @@
 # Use by running
 #    check-data.sh sgdNNN | psql -qX <database connection>
 #
-# All queries should return 0 as the count; if they don't there's something
-# wrong with the data.
+# All queries should return true; if they don't there's something wrong
+# with the data.
+#
+# To abbreviate the output, you can pipe it into
+#   rg -N -U --color=never '(\w+)\s+-+\s+(\w+)' -r '$1: $2'
 
+sgd=$1
+
+# Expand the query in $1 by substituting various values:
+#  SGD  - the deployment 'sgdNNN' passed to the script
+#  INTV - 'hour' and 'day'
+#  DUR  - the duration of INTV in seconds
+#  TBL  - all aggregation tables if TBL is present in the query
+# Note that these substitutions are done for all possible combinations of
+# INTV/DUR and TBL
 expand() {
-    printf "$1;\n" "$2" "hour"
-    printf "$1;\n" "$2" "day"
+    query=${1//SGD/$sgd}
+    if [[ "$query" =~ "INTV" ]]
+    then
+        for pair in hour:3600 day:86400
+        do
+            intv=${pair%:*}
+            duration=${pair#*:}
+            q=${query//INTV/$intv}
+            q=${q//DUR/$duration}
+            if [[ "$q" =~ "TBL" ]]
+            then
+                for tbl in stats group_1 group_2 group_3 groups
+                do
+                    echo "${q//TBL/$tbl};"
+                done
+            else
+                echo "$q;"
+            fi
+        done
+    else
+        echo "$query;"
+    fi
 }
 
-# There's something funky with the first aggregation where max is one more
-# than last
+# Max and last must be the same
 read -d '' -r max_last <<'EOF'
-select count(*) as max_is_not_last
-  from %s.stats_%s
+select count(*) = 0 as TBL_INTV_max_eq_last
+  from SGD.TBL_INTV
  where max != last
-   and first > 1
 EOF
 
+# Min and first must be the same
 read -d '' -r min_first <<'EOF'
-select count(*) as min_is_not_first
-  from %s.stats_%s
+select count(*) = 0 as TBL_INTV_min_eq_first
+  from SGD.TBL_INTV
  where min != first
 EOF
 
+# The sum over block numbers must be correct
 read -d '' -r sum_check <<'EOF'
-select count(*) as sum_not_correct
-  from %s.stats_%s
+select count(*) = 0 as stats_INTV_sum_correct
+  from SGD.stats_INTV
  where sum != (last - first + 1)::numeric*(last + first)::numeric/2
    and first > 1
 EOF
 
-# The last ingested block will cause the count to be 1
-read -d '' -r gaps_hour <<'EOF'
-select count(*) - 1 as gaps_hour
-  from %s.stats_hour s1
- where timestamp > 0 -- first rollup has funky timestamp
-   and not exists (
-      select 1 from %s.stats_hour s2
-       where s1.timestamp = s2.timestamp - 3600)
-EOF
-read -d '' -r gaps_day <<'EOF'
-select count(*) - 1 as gaps_day
-  from %s.stats_day s1
- where timestamp > 0 -- first rollup has funky timestamp
-   and not exists (
-      select 1 from %s.stats_day s2
-       where s1.timestamp = s2.timestamp - 86400)
+# The timestamps of all buckets are rounded to the beginning of the period
+read -d '' -r bucket_timestamp <<'EOF'
+select count(*) = 0 as TBL_INTV_bucket_timestamp
+  from SGD.TBL_INTV
+ where to_timestamp(timestamp)
+    != date_trunc('INTV', to_timestamp(timestamp), 'utc')
 EOF
 
-expand "$max_last" $1
-expand "$min_first" $1
-expand "$sum_check" $1
-printf "$gaps_hour;\n" $1 $1
-printf "$gaps_day;\n" $1 $1
+# The timestamp of the min and max block for all buckets must be between
+# the bucket's timestamp plus the bucket's duration
+read -d '' -r block_timestamp <<'EOF'
+select count(*) = 0 as TBL_INTV_timestamp
+  from SGD.TBL_INTV s,
+       SGD.block_time b
+ where (b.number in (s.min, s.max))
+   and (b.timestamp not between s.timestamp and s.timestamp + DUR)
+EOF
+
+# For group_3_hour, since we split the aggregations into 1000 buckets,
+# there can only be one or two blocks in each bucket; if there are two,
+# they must differ by 1000 blocks
+read -d '' -r group3_count_min_max <<'EOF'
+select count(*) = 0 as count_min_max
+  from SGD.group_3_hour
+ where (count = 1 and min != max)
+    or (count = 2 and min + 1000 != max)
+    or count > 2
+EOF
+
+echo "\pset footer off"
+expand "$max_last"
+expand "$min_first"
+expand "$sum_check"
+expand "$bucket_timestamp"
+expand "$block_timestamp"
+expand "$group3_count_min_max"
