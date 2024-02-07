@@ -95,6 +95,15 @@ select count(*) = 0 as count_min_max
     or count > 2
 EOF
 
+# Same as previous for 'groups' instead of 'group_3'
+read -d '' -r groups_count_min_max <<'EOF'
+select count(*) = 0 as count_min_max
+  from SGD.groups_hour
+ where (count = 1 and min != max)
+    or (count = 2 and min + 1000 != max)
+    or count > 2
+EOF
+
 echo "\pset footer off"
 expand "$max_last"
 expand "$min_first"
