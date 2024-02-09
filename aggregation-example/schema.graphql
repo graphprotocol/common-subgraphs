@@ -134,4 +134,10 @@ type Groups @aggregation(intervals: ["hour", "day"], source: "Block") {
   sum: BigInt! @aggregate(fn: "sum", arg: "number")
   first: Int! @aggregate(fn: "first", arg: "number")
   last: Int! @aggregate(fn: "last", arg: "number")
+  total_count: Int! @aggregate(fn: "count", cumulative: true)
+  total_max: BigDecimal! @aggregate(fn: "max", arg: "number", cumulative: true)
+  total_min: BigDecimal! @aggregate(fn: "min", arg: "number", cumulative: true)
+  total_sum: BigInt! @aggregate(fn: "sum", arg: "number", cumulative: true)
+  total_first: Int! @aggregate(fn: "first", arg: "number", cumulative: true)
+  total_last: Int! @aggregate(fn: "last", arg: "number", cumulative: true)
 }

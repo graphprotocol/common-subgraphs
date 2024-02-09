@@ -104,6 +104,37 @@ select count(*) = 0 as count_min_max
     or count > 2
 EOF
 
+read -d '' -r groups_total_min_max <<'EOF'
+select count(*) = 0 as total_min_max
+  from SGD.groups_hour
+ where total_min != group_3
+    or total_max != max
+    or total_first != group_3
+    or total_last != max;
+EOF
+
+# Fun little math exercise: the total sum for group g
+# with a total_count of tc.
+# is g + (g+1000) + (g+2000) + .. + (g + (tc-1)*1000)
+# We don't know what the total count should be since each group can contain
+# 1 or 2 blocks, but we can at least relate total_count and total_sum
+read -d '' -r groups_total_count_sum <<'EOF'
+select count(*) = 0 as total_count_sum
+  from SGD.groups_hour
+ where total_sum != total_count * (group_3 + 1000 * (total_count::numeric - 1) / 2)
+EOF
+
+# Recalculate total count and sum with a window query
+read -d '' -r groups_window_totals <<'EOF'
+select count(*) = 0 as window_totals from
+  (select group_3, total_count, total_sum,
+          sum(count) over (partition by group_3 order by timestamp) as new_total_count,
+          sum(sum) over (partition by group_3 order by timestamp) as new_total_sum
+     from SGD.groups_hour) t
+ where t.total_count != t.new_total_count
+    or t.total_sum != t.new_total_sum;
+EOF
+
 echo "\pset footer off"
 expand "$max_last"
 expand "$min_first"
@@ -111,3 +142,6 @@ expand "$sum_check"
 expand "$bucket_timestamp"
 expand "$block_timestamp"
 expand "$group3_count_min_max"
+expand "$groups_total_min_max"
+expand "$groups_total_count_sum"
+expand "$groups_window_totals"
