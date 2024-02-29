@@ -39,11 +39,11 @@ type Block @entity(timeseries: true) {
 }
 
 # Aggregate across all blocks. Aggregations use a timeseries as their
-# source. They can be over an hour or a day, or both. For now, aggregations
-# are restricted to 'bucketed' aggregations, where each aggregate starts at
-# 0 at the beginning of the time interval. Lifetime aggregations where
-# aggregates start with the value of the previous bucket will be added
-# later.
+# source. They can be over an hour or a day, or both. By default,
+# aggregates are 'bucketed' which means that each aggregate in each
+# interval starts at 0; by adding `cumulative: true` to the aggregate, they
+# are calculated over the lifetime of the aggregation, i.e., in each
+# interval we start the aggregate at the value from the previous interval.
 #
 # Aggregations are never written by the mappings; instead, graph-node
 # triggers a rollup and creates aggregations whenever it notices that a time
