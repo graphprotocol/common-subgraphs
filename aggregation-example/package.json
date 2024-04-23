@@ -5,13 +5,13 @@
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy": "graph deploy --node https://api.thegraph.com/deploy/ lutter/ethereum-agg",
-    "create-local": "graph create --node http://localhost:8020/ lutter/ethereum-agg",
+    "create-local": "graph create --node http://127.0.0.1:8020/ lutter/ethereum-agg2",
     "remove-local": "graph remove --node http://localhost:8020/ lutter/ethereum-agg",
-    "deploy-local": "graph deploy -l v1 --node http://localhost:8020/ --ipfs https://api.thegraph.com/ipfs/ lutter/ethereum-agg",
+    "deploy-local": "graph deploy -l v1 --node http://127.0.0.1:8020/ --ipfs https://api.thegraph.com/ipfs/ lutter/ethereum-agg2",
     "test": "graph test"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "^0.62.0",
+    "@graphprotocol/graph-cli": "^0.68.0",
     "@graphprotocol/graph-ts": "^0.32.0"
   },
   "devDependencies": {
