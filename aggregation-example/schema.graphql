@@ -4,7 +4,7 @@ type BlockTime @entity(timeseries: true) {
   # Timeseries must have an id of type Int8
   id: Int8!
   # Timeseries must have a timestamp field
-  timestamp: Int8!
+  timestamp: Timestamp!
   # The block hash
   hash: Bytes!
   # The block number
@@ -17,7 +17,7 @@ type BlockTime @entity(timeseries: true) {
 #   'query { blocks(hash: "0x..") { gasUsed }}'
 type Block @entity(timeseries: true) {
   id: Int8!
-  timestamp: Int8!
+  timestamp: Timestamp!
   hash: Bytes!
   number: Int!
   # Artifical grouping keys; groupN is number % 10^N. In a real subgraph,
@@ -59,7 +59,7 @@ type Stats @aggregation(intervals: ["hour", "day"], source: "Block") {
   id: Int8!
   # The timestamp of the bucket is always the timestamp of the beginning of
   # the interval
-  timestamp: Int8!
+  timestamp: Timestamp!
 
   # The aggregates
 
@@ -80,7 +80,7 @@ type Stats @aggregation(intervals: ["hour", "day"], source: "Block") {
 # 10 different aggregates
 type Group1 @aggregation(intervals: ["hour", "day"], source: "Block") {
   id: Int8!
-  timestamp: Int8!
+  timestamp: Timestamp!
   group1: Int!
   count: Int! @aggregate(fn: "count")
   max: BigDecimal! @aggregate(fn: "max", arg: "number")
@@ -94,7 +94,7 @@ type Group1 @aggregation(intervals: ["hour", "day"], source: "Block") {
 # create 100 different aggregates
 type Group2 @aggregation(intervals: ["hour", "day"], source: "Block") {
   id: Int8!
-  timestamp: Int8!
+  timestamp: Timestamp!
   group2: Int!
   count: Int! @aggregate(fn: "count")
   max: BigDecimal! @aggregate(fn: "max", arg: "number")
@@ -109,7 +109,7 @@ type Group2 @aggregation(intervals: ["hour", "day"], source: "Block") {
 # in an hour, the count for each group should be 1
 type Group3 @aggregation(intervals: ["hour", "day"], source: "Block") {
   id: Int8!
-  timestamp: Int8!
+  timestamp: Timestamp!
   group3: Int!
   count: Int! @aggregate(fn: "count")
   max: BigDecimal! @aggregate(fn: "max", arg: "number")
@@ -124,7 +124,7 @@ type Group3 @aggregation(intervals: ["hour", "day"], source: "Block") {
 # in an hour, the count for each group should be 1
 type Groups @aggregation(intervals: ["hour", "day"], source: "Block") {
   id: Int8!
-  timestamp: Int8!
+  timestamp: Timestamp!
   group1: Int!
   group2: Int!
   group3: Int!
