@@ -5,7 +5,7 @@ NETWORK="${1:?Usage: $0 <mainnet|arbitrum> <tokens_file>}"
 TOKENS_FILE="${2:?Usage: $0 <network> <tokens_file>}"
 
 case "$NETWORK" in
-    mainnet) DATASET="edgeandnode/ethereum_mainnet"; CHAIN="mainnet" ;;
+    mainnet) DATASET="edgeandnode/ethereum_mainnet"; CHAIN="ethereum-mainnet" ;;
     arbitrum) DATASET="edgeandnode/arbitrum_one";     CHAIN="arbitrum-one" ;;
     *) echo "Unknown network: $NETWORK"; exit 1 ;;
 esac
