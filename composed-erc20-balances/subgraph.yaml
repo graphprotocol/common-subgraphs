@@ -1,0 +1,21 @@
+specVersion: 1.4.0
+schema:
+    file: ./schema.graphql
+dataSources:
+    - name: ERC20Transfers
+      kind: subgraph
+      network: mainnet
+      source:
+          address: <DEPLOYMENT_HASH>
+          startBlock: 0
+      mapping:
+          apiVersion: 0.0.7
+          language: wasm/assemblyscript
+          file: ./src/mapping.ts
+          entities: []
+          abis: []
+          handlers:
+              - entity: Token
+                handler: handleToken
+              - entity: Transfer
+                handler: handleTransfer

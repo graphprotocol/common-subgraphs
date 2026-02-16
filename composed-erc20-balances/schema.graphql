@@ -1,0 +1,40 @@
+# ERC20 token metadata, sourced from the amp subgraph's Token entity
+type Token @entity {
+    # Contract address (20 bytes)
+    id: Bytes!
+    # Token ticker, e.g. "GRT", "UNI"
+    symbol: String!
+    # Number of decimal places for token amounts
+    decimals: Int!
+}
+
+# Current balance of a single token for a single wallet
+type WalletBalance @entity {
+    # Token address ++ wallet address (40 bytes)
+    id: Bytes!
+    # Token contract
+    token: Token!
+    # Wallet address (20 bytes)
+    address: Bytes!
+    # Current balance (raw, not decimal-adjusted); can be negative if
+    # the subgraph started indexing after the token's first transfer
+    balance: BigInt!
+    # Block number of the most recent balance change
+    lastUpdatedBlock: BigInt!
+}
+
+# Immutable record of an ERC20 Transfer event
+type TransferRecord @entity(immutable: true) {
+    # Transaction hash (32 bytes)
+    id: Bytes!
+    # Token contract that emitted this Transfer
+    token: Token!
+    # Sender address
+    from: Bytes!
+    # Receiver address
+    to: Bytes!
+    # Amount transferred (raw, not decimal-adjusted)
+    value: BigInt!
+    blockNumber: BigInt!
+    transactionHash: Bytes!
+}

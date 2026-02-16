@@ -1,0 +1,82 @@
+# ERC20 token contract being tracked
+type Token @entity {
+    # Contract address (20 bytes)
+    id: Bytes!
+    # Token ticker, e.g. "GRT", "UNI"
+    symbol: String!
+    # Number of decimal places for token amounts
+    decimals: Int!
+}
+
+# Unique wallet address seen in any Transfer event
+type Account @entity {
+    # Wallet address (20 bytes)
+    id: Bytes!
+}
+
+# Individual ERC20 Transfer event, stored as immutable timeseries
+type Transfer @entity(timeseries: true) {
+    # Auto-assigned by graph-node
+    id: Int8!
+    # Block timestamp
+    timestamp: Timestamp!
+    # Token contract that emitted this Transfer
+    token: Token!
+    # Sender address
+    from: Account!
+    # Receiver address
+    to: Account!
+    # Amount transferred (raw, not decimal-adjusted)
+    value: BigInt!
+    blockNumber: BigInt!
+    blockHash: Bytes!
+    transactionHash: Bytes!
+}
+
+# Per-account balance change from a Transfer, used as the source for
+# AccountBalance aggregation. Each Transfer produces two rows: a negative
+# delta for the sender and a positive delta for the receiver.
+type TransferData @entity(timeseries: true) {
+    # Auto-assigned by graph-node
+    id: Int8!
+    # Block timestamp
+    timestamp: Timestamp!
+    # Token contract
+    token: Token!
+    # Wallet whose balance changed
+    account: Account!
+    # Balance change: +value for receiver, -value for sender
+    delta: BigInt!
+}
+
+# Cumulative per-token per-account balance, rolled up hourly and daily.
+# The balance is a running sum of all deltas over the lifetime of the
+# subgraph, not just within each interval.
+type AccountBalance
+    @aggregation(intervals: ["hour", "day"], source: "TransferData") {
+    # Auto-assigned by graph-node
+    id: Int8!
+    # Start of the aggregation interval
+    timestamp: Timestamp!
+    # Grouped by token
+    token: Token!
+    # Grouped by account
+    account: Account!
+    # Cumulative sum of TransferData.delta
+    balance: BigInt! @aggregate(fn: "sum", arg: "delta", cumulative: true)
+}
+
+# Per-token transfer volume stats, rolled up hourly and daily
+type TransferStats
+    @aggregation(intervals: ["hour", "day"], source: "Transfer") {
+    # Auto-assigned by graph-node
+    id: Int8!
+    # Start of the aggregation interval
+    timestamp: Timestamp!
+    # Grouped by token
+    token: Token!
+    # Number of transfers in this interval
+    count: Int! @aggregate(fn: "count")
+    # Sum of transfer values in this interval
+    totalValue: BigInt! @aggregate(fn: "sum", arg: "value")
+}

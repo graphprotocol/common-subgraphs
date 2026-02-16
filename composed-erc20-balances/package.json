@@ -1,0 +1,15 @@
+{
+    "name": "composed-erc20-balances",
+    "license": "MIT",
+    "scripts": {
+        "codegen": "graph codegen --ipfs ${IPFS_URL:-http://localhost:5001/}",
+        "build": "graph build",
+        "create-local": "graph create --node ${GRAPH_NODE_URL:-http://localhost:8020/} composed-erc20-balances",
+        "remove-local": "graph remove --node ${GRAPH_NODE_URL:-http://localhost:8020/} composed-erc20-balances",
+        "deploy-local": "graph deploy --node ${GRAPH_NODE_URL:-http://localhost:8020/} --ipfs ${IPFS_URL:-http://localhost:5001/} composed-erc20-balances"
+    },
+    "devDependencies": {
+        "@graphprotocol/graph-cli": "0.95.0",
+        "@graphprotocol/graph-ts": "0.38.1"
+    }
+}
